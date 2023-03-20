@@ -1,11 +1,11 @@
 import pandas as pd
 
 def get_team_data(year):
-    df = pd.read_csv(f'C:\\Users\\vauda\\Documents\\work\\PS\\NCRMadness\\data\\cbb{year}.csv')
+    df = pd.read_csv(f'C:\\Users\\vauda\\Documents\\work\\PS\\march_madness_23\\data\\cbb{year}.csv')
     return df[['TEAM','CONF','G','W','ADJOE','ADJDE','BARTHAG','EFG_O','EFG_D','TOR','TORD','ORB','DRB','FTR','FTRD','2P_O','2P_D','3P_O','3P_D','ADJ_T','WAB']]
 
 def get_bracket(year):
-    df = pd.read_csv('C:\\Users\\vauda\\Documents\\work\\PS\\NCRMadness\\data\\data_cleaned.csv')
+    df = pd.read_csv('C:\\Users\\vauda\\Documents\\work\\PS\\march_madness_23\\data\\data_cleaned.csv')
     df = df[df['YEAR'] == int(f'20{year}')]
     return df
 
@@ -69,6 +69,7 @@ def fix_23():
     val.to_csv('C:\\Users\\vauda\\Documents\\work\\PS\\NCRMadness\\data\\cbb23.csv')
 
 if __name__ == '__main__':
+    """
     total_df = pd.DataFrame()
 
     for i in range(9):
@@ -84,10 +85,17 @@ if __name__ == '__main__':
         # print(total_df)
 
     total_df = total_df.reset_index(drop=True)
-    total_df.to_csv('C:\\Users\\vauda\\Documents\\work\\PS\\NCRMadness\\data\\training_data.csv', index=False)
-
-    print(get_team_data(23))
-        # print(team_df)
+    total_df.to_csv('C:\\Users\\vauda\\Documents\\work\\PS\\march_madness_23\\data\\training_data.csv', index=False)
+    """
+    team_data = get_team_data(23)
+    df = pd.read_csv('C:\\Users\\vauda\\Documents\\work\\PS\\march_madness_23\\data\\teams23.csv')
+    print(df.columns)
+    
+    teams_23 = pd.merge(df, team_data, 'left', on='TEAM')
+    
+    print(teams_23)
+    # print(generate_round(teams_23))
+    # model = pickle.dump(model, open(filename, 'wb'))
 
         # print(bracket)
         # print(all_teams)

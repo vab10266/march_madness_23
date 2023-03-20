@@ -26,7 +26,7 @@ def column_selector(df, cols):
     y = df['RESULT']
     return X, y
 
-def k_folds(df, cols, model_class, *args):
+def k_folds(df, cols, model_class, *args, **kwargs):
     years = df.YEAR.unique()
     validation_year = years[0]
     folds_years = years[1:]
@@ -42,7 +42,7 @@ def k_folds(df, cols, model_class, *args):
         
         train_X, train_y = column_selector(train_df, cols)
 
-        clf = model_class(*args)
+        clf = model_class(*args, **kwargs)
         # model.fit(train_X, train_y)
 
         clf = make_pipeline(StandardScaler(), clf)
@@ -57,7 +57,8 @@ def k_folds(df, cols, model_class, *args):
 
     full_df = df[df.YEAR.isin(folds_years)]
     full_X, full_y = column_selector(full_df, cols)
-    _clf = model_class(*args)
+    _clf = model_class(*args, **kwargs)
+    _clf = make_pipeline(StandardScaler(), _clf)
     _clf.fit(full_X, full_y)
     return np.mean(fold_results), _clf
         
@@ -65,10 +66,10 @@ def k_folds(df, cols, model_class, *args):
 
 if __name__ == '__main__':
 
-    df = pd.read_csv('C:\\Users\\vauda\\Documents\\work\\PS\\NCRMadness\\data\\training_data.csv')
+    df = pd.read_csv('C:\\Users\\vauda\\Documents\\work\\PS\\march_madness_23\\data\\training_data.csv')
     print(df.columns)
-    best = [1, 3, 4, 11]#[1, 6, 17, 10]
-    print(df.columns[best])
+    cols = [1, 2, 3, 4, 5, 18, 19]#list(range(20))#[3, 4, 5, 6, 7, 10, 11]#[1, 6, 17, 10]
+    print(df.columns[cols])
     result_dict = {}
     # for i in range(1):
     #     i=3
@@ -81,7 +82,7 @@ if __name__ == '__main__':
     # best = max(result_dict, key=result_dict.get)
     # print(best, result_dict[best])
 
-    classifiers = [
+    """classifiers = [
         KNeighborsClassifier,
         SVC,
         DecisionTreeClassifier,
@@ -91,17 +92,59 @@ if __name__ == '__main__':
         GaussianNB,
         QuadraticDiscriminantAnalysis,
     ]
+    names = [
+        'KNeighborsClassifier',
+        'SVC',
+        'DecisionTreeClassifier',
+        'RandomForestClassifier',
+        'MLPClassifier',
+        'AdaBoostClassifier',
+        'GaussianNB',
+        'QuadraticDiscriminantAnalysis',
+    ]
+    model_dict = {}
     for i in range(len(classifiers)):
     # i=6
-        result, model = k_folds(df, best, classifiers[i])
+        result, model = k_folds(df, cols, classifiers[i])
         print(result)
         result_dict[str(i)] = result
+        model_dict[str(i)] = model
     best = max(result_dict, key=result_dict.get)
-    print(best, result_dict[best])
+    print(names[int(best)], result_dict[best])"""
+    model_dict = {}
+    params_dict = {}
+    mss = [2, 3, 5, 8, 13, 21]
+    mfs = [
+        'sqrt', 'log2'
+    ]
+    crits = [
+        'gini', 'entropy', 'log_loss'
+    ]
+    i = 0
+    for ms in mss:
+        for mf in mfs:
+            for crit in crits:
+                result, model = k_folds(df, cols, RandomForestClassifier, min_samples_split=ms, max_features=mf, criterion=crit, random_state=0)
+                print(ms, mf, crit, result)
+                result_dict[str(i)] = result
+                params_dict[str(i)] = (ms, mf, crit)
+                model_dict[str(i)] = model
+                i += 1
+    
+    best = max(result_dict, key=result_dict.get)
+    print(params_dict[best], result_dict[best])
+    print(model_dict[best].named_steps)
+    print(model_dict[best].named_steps['randomforestclassifier'].feature_importances_)
 
+
+
+
+    
     # save the model to disk
-    filename = 'C:\\Users\\vauda\\Documents\\work\\PS\\NCRMadness\\game_model.sav'
-    pickle.dump(model, open(filename, 'wb'))
+    filename = 'C:\\Users\\vauda\\Documents\\work\\PS\\march_madness_23\\game_model.sav'
+    pickle.dump(model_dict[best], open(filename, 'wb'))
+    cols_filename = 'C:\\Users\\vauda\\Documents\\work\\PS\\march_madness_23\\cols.sav'
+    pickle.dump(cols, open(cols_filename, 'wb'))
 
     # selected_cols = list(range(20))#[0, 3, 4, 5]
     # print(df.columns[selected_cols])
